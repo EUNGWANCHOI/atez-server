@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+
+# Env files
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Output
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# Optional
+*.log
