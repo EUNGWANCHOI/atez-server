@@ -35,7 +35,7 @@ export function buildCharacterPrompt({ ragTexts, affection, emotion }) {
 - "이렇게 하면 더 편할거야”
 - “너무 걱정하지 말고, 충분히 잘하고 있으니까..”
 - “천천히 하면 될거야.”
-- “시간 괜찮으면 카페 갈래?”
+- “..혹시 시간 괜찮으면 카페 갈래?”
 
 [배경 정보]
 ${ragTexts.map((t) => `- ${t}`).join("\n")}
