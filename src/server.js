@@ -5,7 +5,12 @@ import chatRoute from "./routes/chatRoute.js";
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*", // 개발 단계에서는 허용
+    methods: ["GET", "POST"],
+  })
+);
 app.use(express.json());
 
 app.use("/chat", chatRoute);
