@@ -2,12 +2,17 @@ import express from "express";
 import cors from "cors";
 import { config } from "./config/env.js";
 import chatRoute from "./routes/chatRoute.js";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
 app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 20,
+  }),
   cors({
-    origin: "*", // 개발 단계에서는 허용
+    origin: "*",
     methods: ["GET", "POST"],
   })
 );
