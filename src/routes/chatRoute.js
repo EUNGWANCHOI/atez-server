@@ -5,6 +5,7 @@ import { config } from "../config/env.js";
 import { buildCharacterPrompt } from "../character/promptEngine.js";
 import { updateState } from "../character/state.js";
 import { saveMemory, loadMemories } from "../character/memory.js";
+import { saveSituation, loadActiveSituation } from "../character/situation.js";
 
 const router = express.Router();
 const client = new OpenAI({ apiKey: config.OPENAI_API_KEY });
@@ -27,6 +28,8 @@ router.post("/", async (req, res) => {
 
   const ragTexts = ragResults?.map((r) => r.content) || [];
 
+  const situation = await loadActiveSituation(userId);
+
   const { affection, emotion } = updateState(message);
 
   const systemPrompt = buildCharacterPrompt({
@@ -34,6 +37,7 @@ router.post("/", async (req, res) => {
     affection,
     emotion,
     memories,
+    situation,
   });
 
   const completion = await client.chat.completions.create({
@@ -54,6 +58,7 @@ router.post("/", async (req, res) => {
     emotion,
     ragUsed: ragTexts,
     usedMemories: memories, // 디버깅용: 어떤 기억 쓰였는지 확인
+    situation,
   });
 });
 
