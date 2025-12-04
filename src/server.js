@@ -6,7 +6,10 @@ import rateLimit from "express-rate-limit";
 
 const app = express();
 
+app.set("trust proxy", true);
+
 app.use(
+  "/chat",
   rateLimit({
     windowMs: 60 * 1000,
     max: 20,
@@ -15,7 +18,7 @@ app.use(
 
 app.use(
   cors({
-    origin: "*",
+    origin: "https://atez-web.vercel.app",
     methods: ["GET", "POST"],
   })
 );
