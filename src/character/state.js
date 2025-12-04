@@ -9,6 +9,7 @@ const DEFAULT_STATE = {
   emotion: "neutral",
 };
 
+// 🔹 유저 상태 불러오기
 export async function getUserState(userId) {
   const { data } = await supabase
     .from("user_state")
@@ -19,12 +20,14 @@ export async function getUserState(userId) {
   return data || { ...DEFAULT_STATE };
 }
 
+// 🔹 유저 상태 저장
 async function saveUserState(userId, affection, emotion) {
   await supabase
     .from("user_state")
     .upsert({ user_id: userId, affection, emotion });
 }
 
+// 🔹 감정 분석 (OpenAI)
 async function analyzeSentiment(message) {
   const completion = await client.chat.completions.create({
     model: "gpt-4o-mini",
@@ -42,12 +45,22 @@ async function analyzeSentiment(message) {
   return completion.choices[0].message.content.trim();
 }
 
-// 🔸 사용자 입력 기반 감정/호감도 업데이트
-export async function updateState(userId, message) {
-  const state = await getUserState(userId);
-  let { affection, emotion } = state;
+// 🔥 최적화: 감정 분석해야 할 문장인지 먼저 정규식으로 판단
+function shouldAnalyzeSentiment(message) {
+  const positive = /(좋아|보고싶|보고 싶|멋있|재밌|웃겼|귀엽)/;
+  const negative = /(싫어|바보|짜증|화났|최악|별로)/;
+  return positive.test(message) || negative.test(message);
+}
 
-  // 1) 간단 키워드 기반 호감도
+// 🧠 최종 상태 업데이트 함수
+export async function updateState(userId, message) {
+  if (!message || typeof message !== "string") {
+    return await getUserState(userId);
+  }
+
+  let { affection, emotion } = await getUserState(userId);
+
+  // 🔸 키워드 기반 호감도 (즉시 적용, 비용 無)
   if (message.includes("좋아해") || message.includes("보고싶")) {
     affection += 5;
   }
@@ -58,18 +71,20 @@ export async function updateState(userId, message) {
     affection -= 5;
   }
 
-  // 2) 문맥 감정 분석
-  const contextEmotion = await analyzeSentiment(message);
+  // 💎 최적화: 감정 분석이 필요할 때만 API 호출
+  if (shouldAnalyzeSentiment(message)) {
+    const contextEmotion = await analyzeSentiment(message);
 
-  // 중립 아닌 경우만 반영
-  if (contextEmotion && contextEmotion !== "neutral") {
-    emotion = contextEmotion;
+    // 중립일 때는 변화 없음
+    if (contextEmotion && contextEmotion !== "neutral") {
+      emotion = contextEmotion;
+    }
   }
 
-  // 3) 호감도 범위 제한
+  // 🔐 호감도 범위 제한
   affection = Math.max(0, Math.min(100, affection));
 
-  // DB 저장
+  // 💾 저장
   await saveUserState(userId, affection, emotion);
 
   return { affection, emotion };
